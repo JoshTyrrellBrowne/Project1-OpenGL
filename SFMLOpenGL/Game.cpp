@@ -23,6 +23,7 @@ colorID,	// Color ID
 textureID,	// Texture ID
 uvID,		// UV ID
 mvpID,		// Model View Projection ID
+playerMvpID, // MY ADDITION
 x_offsetID, // X offset ID
 y_offsetID,	// Y offset ID
 z_offsetID;	// Z offset ID
@@ -174,14 +175,16 @@ void Game::run()
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 			{
 				// Set Model Rotation
-				model = rotate(model, -0.01f, glm::vec3(1, 0, 0)); // Rotate
+				//model = rotate(model, -0.01f, glm::vec3(1, 0, 0)); // Rotate
+				modelPlayer = glm::translate(modelPlayer, glm::vec3(0, 0.1, 0));
+				m_playerObject->setPosition(glm::vec3(m_playerObject->getPosition().x, m_playerObject->getPosition().y + 0.1, m_playerObject->getPosition().z));
 			}
 
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 			{
 				// Set Model Rotation
 				model = rotate(model, 0.01f, glm::vec3(1, 0, 0)); // Rotate
-				//model = glm::translate(model, glm::vec3(1, 0, 0));  TRANSALTE
+				modelPlayer = glm::translate(modelPlayer, glm::vec3(0, -0.1, 0));
 			}
 
 			if (animate)
@@ -190,6 +193,12 @@ void Game::run()
 				model = rotate(model, 0.01f, animation); // Rotate
 				rotation = 0.0f;
 				animate = false;
+			}
+
+			if (m_playerObject->getPosition().y > 0.5f)
+			{
+				modelPlayer = glm::translate(modelPlayer, glm::vec3(0, -0.005, 0));
+				m_playerObject->setPosition(glm::vec3(m_playerObject->getPosition().x, m_playerObject->getPosition().y - 0.005, m_playerObject->getPosition().z));
 			}
 		}
 		update();
@@ -255,6 +264,7 @@ void Game::initialize()
 		"out vec2 uv;"
 		""
 		"uniform mat4 sv_mvp;"
+		"uniform mat4 sv_mvpPlayer;"	// MY ADDITION
 		"uniform float sv_x_offset;"
 		"uniform float sv_y_offset;"
 		"uniform float sv_z_offset;"
@@ -480,6 +490,10 @@ void Game::render()
 	mvpID = glGetUniformLocation(progID, "sv_mvp");
 	if (mvpID < 0) { DEBUG_MSG("mvpID not found"); }
 
+	// MY ADDITION
+	playerMvpID = glGetUniformLocation(progID, "sv_mvpPlayer");
+	if (playerMvpID < 0) { DEBUG_MSG("playerMvpID not found"); }
+
 	x_offsetID = glGetUniformLocation(progID, "sv_x_offset");
 	if (x_offsetID < 0) { DEBUG_MSG("x_offsetID not found"); }
 
@@ -540,6 +554,7 @@ void Game::render()
 		glDrawElements(GL_TRIANGLES, 3 * INDICES, GL_UNSIGNED_INT, NULL);
 	}
 
+	glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpPlayer[0][0]);	//MY ADDITION
 	//player stuff..
 	glUniform1f(x_offsetID, m_playerObject->getPosition().x);
 	glUniform1f(y_offsetID, m_playerObject->getPosition().y);
