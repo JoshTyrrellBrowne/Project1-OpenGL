@@ -62,15 +62,22 @@ Game::Game(sf::ContextSettings settings) :
 		settings)
 {
 	m_playerObject = new GameObject();
-	m_playerObject->setPosition(vec3(0.5f, 0.5f, -4.0f));
+	m_playerObject->setPosition(vec3(0.5f, 0.5f, -2.0f));
 
 	game_object[0] = new GameObject();
-	game_object[0]->setPosition(vec3(0.5f, 0.5f, -2.0f));
+	game_object[0]->setPosition(vec3(4.5f, 0.5f, -2.0f));
 
 	game_object[1] = new GameObject();
-	game_object[1]->setPosition(vec3(4.5f, 0.5f, -2.0f));
+	game_object[1]->setPosition(vec3(12.5f, 0.5f, -2.0f));
 
-	m_objectNum = 2;	// number of game objects
+	game_object[2] = new GameObject();
+	game_object[2]->setPosition(vec3(15.5f, 0.5f, -2.0f));
+
+	game_object[3] = new GameObject();
+	game_object[3]->setPosition(vec3(32.5f, 0.5f, -2.0f));
+
+	m_objectNum = 4;	// number of game objects
+
 }
 
 Game::~Game()
@@ -195,10 +202,15 @@ void Game::run()
 				animate = false;
 			}
 
-			if (m_playerObject->getPosition().y > 0.5f)
+			/*if (m_playerObject->getPosition().y > 0.5f)
 			{
 				modelPlayer = glm::translate(modelPlayer, glm::vec3(0, -0.005, 0));
 				m_playerObject->setPosition(glm::vec3(m_playerObject->getPosition().x, m_playerObject->getPosition().y - 0.005, m_playerObject->getPosition().z));
+			}*/
+
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+			{
+				m_playerState = PlayerState::JUMPING;
 			}
 		}
 		update();
@@ -416,7 +428,49 @@ void Game::initialize()
 
 void Game::update()
 {
+	switch (m_playerState)
+	{
+	case PlayerState::IDLE:
+
+		break;
+	case PlayerState::JUMPING:
+		modelPlayer = glm::translate(modelPlayer, glm::vec3(0, 0.01, 0));
+		m_playerObject->setPosition(glm::vec3(m_playerObject->getPosition().x, m_playerObject->getPosition().y + 0.01, m_playerObject->getPosition().z));
+
+		if (m_playerObject->getPosition().y > 3.0f)
+		{
+			m_playerState = PlayerState::FALLING;
+		}
+		break;
+	case PlayerState::FALLING:
+		modelPlayer = glm::translate(modelPlayer, glm::vec3(0, -0.01, 0));
+		m_playerObject->setPosition(glm::vec3(m_playerObject->getPosition().x, m_playerObject->getPosition().y - 0.01, m_playerObject->getPosition().z));
+
+		if (m_playerObject->getPosition().y < 0.6f)
+		{
+			m_playerState = PlayerState::IDLE;
+		}
+		break;
+
+	}
+
+	for (int i = 0; i < m_objectNum; i++)
+	{
+		std::pair<bool, bool> collision = checkCollision(*m_playerObject, *game_object[i]);
+
+		if (collision.first == true && collision.second == true)
+		{
+			//then a collision has happened..
+			m_collisions++;
+
+		}
+	}
+
 	model = glm::translate(model, glm::vec3(-0.001, 0, 0));
+	for (int i = 0; i < m_objectNum; i++)
+	{
+		game_object[i]->setPosition(glm::vec3(game_object[i]->getPosition().x - 0.001, game_object[i]->getPosition().y, game_object[i]->getPosition().z)); // for collision detection
+	}
 #if (DEBUG >= 2)
 	DEBUG_MSG("Updating...");
 #endif
@@ -448,11 +502,13 @@ void Game::render()
 	int x = Mouse::getPosition(window).x;
 	int y = Mouse::getPosition(window).y;
 
-	string hud = "Heads Up Display ["
-		+ string(toString(x))
-		+ "]["
-		+ string(toString(y))
-		+ "]";
+	/*string hud = "Heads Up Display ["
+	+ string(toString(x))
+	+ "]["
+	+ string(toString(y))
+	+ "]";*/
+
+	string hud = "Collisions: " + std::to_string(m_collisions);
 
 	Text text(hud, font);
 
@@ -598,3 +654,14 @@ void Game::unload()
 	stbi_image_free(img_data);		// Free image stbi_image_free(..)
 }
 
+std::pair<bool, bool> Game::checkCollision(GameObject t_objectOne, GameObject t_objectTwo)
+{
+	// Collision x-axis?
+	bool collisionX = t_objectOne.getPosition().x + m_objectLength >= t_objectTwo.getPosition().x &&
+		t_objectTwo.getPosition().x + m_objectLength >= t_objectOne.getPosition().x;
+	// Collision y-axis?
+	bool collisionY = t_objectOne.getPosition().y + m_objectLength >= t_objectTwo.getPosition().y &&
+		t_objectTwo.getPosition().y + m_objectLength >= t_objectOne.getPosition().y;
+	// Collision only if on both axes
+	return std::make_pair(collisionX, collisionY);
+}

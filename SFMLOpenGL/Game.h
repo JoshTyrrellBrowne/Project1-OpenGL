@@ -34,7 +34,7 @@ public:
 	~Game();
 	void run();
 private:
-	GameObject* game_object[2];
+	GameObject* game_object[4];
 	GameObject* m_playerObject;
 	RenderWindow window;
 	Clock clock;
@@ -48,7 +48,14 @@ private:
 	void render();
 	void unload();
 
+	std::pair<bool, bool> checkCollision(GameObject t_objectOne, GameObject t_objectTwo);
+	float m_objectLength{ 1.0f }; // the width and heigth of the objects
+	int m_collisions{ 0 };
+
 	int m_objectNum; // number of game objects
+
+	enum class PlayerState { IDLE, JUMPING, FALLING };
+	PlayerState m_playerState{ PlayerState::IDLE };
 };
 
 #endif  // ! GAME_H
