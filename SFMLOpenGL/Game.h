@@ -35,7 +35,11 @@ public:
 	void run();
 private:
 	GameObject* game_object[4];
+	vec3 m_objectPositions[4];	// position vector used for collision detection
+
 	GameObject* m_playerObject;
+	vec3 m_playerPosition;		// position vector used for collision detection
+
 	RenderWindow window;
 	Clock clock;
 	Time time;
@@ -48,7 +52,7 @@ private:
 	void render();
 	void unload();
 
-	std::pair<bool, bool> checkCollision(GameObject t_objectOne, GameObject t_objectTwo);
+	std::pair<bool, bool> checkCollision(vec3 t_objectOne, vec3 t_objectTwo);
 	float m_objectLength{ 1.0f }; // the width and heigth of the objects
 	int m_collisions{ 0 };
 

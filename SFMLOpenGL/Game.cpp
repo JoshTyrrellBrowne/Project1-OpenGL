@@ -61,6 +61,8 @@ Game::Game(sf::ContextSettings settings) :
 		sf::Style::Default,
 		settings)
 {
+	m_objectNum = 4;	// number of game objects
+
 	m_playerObject = new GameObject();
 	m_playerObject->setPosition(vec3(0.5f, 0.5f, -2.0f));
 
@@ -76,12 +78,22 @@ Game::Game(sf::ContextSettings settings) :
 	game_object[3] = new GameObject();
 	game_object[3]->setPosition(vec3(32.5f, 0.5f, -2.0f));
 
-	m_objectNum = 4;	// number of game objects
-
+	// initialize pos vectors
+	m_playerPosition = m_playerObject->getPosition();
+	for (int i = 0; i < m_objectNum; i++)
+	{
+		m_objectPositions[i] = game_object[i]->getPosition();
+	}
+	
 }
 
 Game::~Game()
 {
+	delete m_playerObject;
+	for (int i = 0; i < m_objectNum; i++)
+	{
+		delete game_object[i];
+	}
 }
 
 
@@ -435,18 +447,18 @@ void Game::update()
 		break;
 	case PlayerState::JUMPING:
 		modelPlayer = glm::translate(modelPlayer, glm::vec3(0, 0.01, 0));
-		m_playerObject->setPosition(glm::vec3(m_playerObject->getPosition().x, m_playerObject->getPosition().y + 0.01, m_playerObject->getPosition().z));
+		m_playerPosition = (glm::vec3(m_playerPosition.x, m_playerPosition.y + 0.01, m_playerPosition.z));
 
-		if (m_playerObject->getPosition().y > 3.0f)
+		if (m_playerPosition.y > 3.0f)
 		{
 			m_playerState = PlayerState::FALLING;
 		}
 		break;
 	case PlayerState::FALLING:
 		modelPlayer = glm::translate(modelPlayer, glm::vec3(0, -0.01, 0));
-		m_playerObject->setPosition(glm::vec3(m_playerObject->getPosition().x, m_playerObject->getPosition().y - 0.01, m_playerObject->getPosition().z));
+		m_playerPosition = (glm::vec3(m_playerPosition.x, m_playerPosition.y - 0.01, m_playerPosition.z));
 
-		if (m_playerObject->getPosition().y < 0.6f)
+		if (m_playerPosition.y < 0.6f)
 		{
 			m_playerState = PlayerState::IDLE;
 		}
@@ -456,20 +468,18 @@ void Game::update()
 
 	for (int i = 0; i < m_objectNum; i++)
 	{
-		std::pair<bool, bool> collision = checkCollision(*m_playerObject, *game_object[i]);
-
+		std::pair<bool, bool> collision = checkCollision(m_playerPosition, m_objectPositions[i]);
 		if (collision.first == true && collision.second == true)
 		{
 			//then a collision has happened..
 			m_collisions++;
-
 		}
 	}
 
 	model = glm::translate(model, glm::vec3(-0.001, 0, 0));
 	for (int i = 0; i < m_objectNum; i++)
 	{
-		game_object[i]->setPosition(glm::vec3(game_object[i]->getPosition().x - 0.001, game_object[i]->getPosition().y, game_object[i]->getPosition().z)); // for collision detection
+		m_objectPositions[i] = (glm::vec3(m_objectPositions[i].x - 0.001, m_objectPositions[i].y, m_objectPositions[i].z)); // for collision detection
 	}
 #if (DEBUG >= 2)
 	DEBUG_MSG("Updating...");
@@ -654,14 +664,14 @@ void Game::unload()
 	stbi_image_free(img_data);		// Free image stbi_image_free(..)
 }
 
-std::pair<bool, bool> Game::checkCollision(GameObject t_objectOne, GameObject t_objectTwo)
+std::pair<bool, bool> Game::checkCollision(vec3 t_objectOne, vec3 t_objectTwo)
 {
 	// Collision x-axis?
-	bool collisionX = t_objectOne.getPosition().x + m_objectLength >= t_objectTwo.getPosition().x &&
-		t_objectTwo.getPosition().x + m_objectLength >= t_objectOne.getPosition().x;
+	bool collisionX = (t_objectOne.x - 0.5) + m_objectLength >= (t_objectTwo.x - 0.5) &&
+		(t_objectTwo.x - 0.5) + m_objectLength >= (t_objectOne.x - 0.5);
 	// Collision y-axis?
-	bool collisionY = t_objectOne.getPosition().y + m_objectLength >= t_objectTwo.getPosition().y &&
-		t_objectTwo.getPosition().y + m_objectLength >= t_objectOne.getPosition().y;
+	bool collisionY = (t_objectOne.y - 0.5) + m_objectLength >= (t_objectTwo.y - 0.5) &&
+		(t_objectTwo.y - 0.5) + m_objectLength >= (t_objectOne.y - 0.5);
 	// Collision only if on both axes
 	return std::make_pair(collisionX, collisionY);
 }
