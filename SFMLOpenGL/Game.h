@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <list>
 
 #include <iostream>
 #include <GL/glew.h>
@@ -33,12 +34,19 @@ public:
 	Game(sf::ContextSettings settings);
 	~Game();
 	void run();
+	void reset(); // function to reset and/or restart
 private:
-	GameObject* game_object[4];
-	vec3 m_objectPositions[4];	// position vector used for collision detection
+	GameObject* game_objectCoins[12];
+	vec3 m_objectCoinPositions[12];	// position vector used for collision detection
+
+	GameObject* game_objectObstacle[12];
+	vec3 m_objectObstaclePositions[12];	// position vector used for collision detection
 
 	GameObject* m_playerObject;
 	vec3 m_playerPosition;		// position vector used for collision detection
+
+	//std::vector of game objects for ground
+	vector<GameObject> m_groundCubes;
 
 	RenderWindow window;
 	Clock clock;
@@ -53,8 +61,8 @@ private:
 	void unload();
 
 	std::pair<bool, bool> checkCollision(vec3 t_objectOne, vec3 t_objectTwo);
-	float m_objectLength{ 1.0f }; // the width and heigth of the objects
-	int m_collisions{ 0 };
+	float m_objectLength{ 2.0f }; // the width and heigth of the objects
+	int m_Points{ 0 };
 
 	int m_objectNum; // number of game objects
 
