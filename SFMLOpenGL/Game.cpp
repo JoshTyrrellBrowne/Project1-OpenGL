@@ -647,7 +647,7 @@ void Game::update()
 		{
 			m_collisionIndex = i;
 			//then a collision has happened with an obstacle
-			if (m_playerPosition.y > m_objectCoinPositions[i].y + 1)
+			if (m_playerPosition.y > m_objectObstaclePositions[i].y + 1)
 			{
 				m_collisionState = CollisionState::TOP;
 			}
