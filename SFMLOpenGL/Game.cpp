@@ -488,7 +488,7 @@ void Game::initialize()
 		"out vec4 fColor;"
 		""
 		"void main() {"
-		"	fColor = color - texture2D(f_texture, uv);"
+		"	fColor = texture2D(f_texture, uv);"
 		""
 		"}"; //Fragment Shader Src
 
