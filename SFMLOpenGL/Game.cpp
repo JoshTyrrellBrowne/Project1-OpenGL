@@ -626,8 +626,11 @@ void Game::update()
 		}
 		break;
 	case PlayerState::FALLING:
-		modelPlayer = glm::translate(modelPlayer, glm::vec3(0, -0.07, 0));
-		m_playerPosition = (glm::vec3(m_playerPosition.x, m_playerPosition.y - 0.07, m_playerPosition.z));
+		if (m_collisionState != CollisionState::TOP)
+		{
+			modelPlayer = glm::translate(modelPlayer, glm::vec3(0, -0.07, 0));
+			m_playerPosition = (glm::vec3(m_playerPosition.x, m_playerPosition.y - 0.07, m_playerPosition.z));
+		}
 
 		if (m_playerPosition.y < 0.51f)
 		{
@@ -642,8 +645,16 @@ void Game::update()
 		std::pair<bool, bool> collision = checkCollision(m_playerPosition, m_objectObstaclePositions[i]);
 		if (collision.first == true && collision.second == true)
 		{
+			m_collisionIndex = i;
 			//then a collision has happened with an obstacle
-			reset();
+			if (m_playerPosition.y > m_objectCoinPositions[i].y + 1)
+			{
+				m_collisionState = CollisionState::TOP;
+			}
+			else
+			{
+				reset();
+			}
 		}
 
 		collision = checkCollision(m_playerPosition, m_objectCoinPositions[i]);
@@ -655,6 +666,12 @@ void Game::update()
 			m_Points++;
 		}
 	}
+	
+	if (m_playerPosition.x > m_objectObstaclePositions[m_collisionIndex].x + 2 && m_collisionState == CollisionState::TOP)
+	{
+		m_collisionState = CollisionState::NORMAL;
+	}
+
 
 	model = glm::translate(model, glm::vec3(-0.05, 0, 0));
 	for (int i = 0; i < m_objectNum; i++)

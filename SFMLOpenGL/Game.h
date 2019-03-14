@@ -68,6 +68,9 @@ private:
 
 	enum class PlayerState { IDLE, JUMPING, FALLING };
 	PlayerState m_playerState{ PlayerState::IDLE };
+	enum class CollisionState { NORMAL, TOP };
+	CollisionState m_collisionState{ CollisionState::NORMAL };
+	int m_collisionIndex{-1};
 };
 
 #endif  // ! GAME_H
